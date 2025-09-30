@@ -21,22 +21,18 @@ class CommonAjaxController extends BaseController
         $roleId = session()->get('role'); 
         $db = \Config\Database::connect(); 
 
-        if($roleId != 1){ // Role 1 bypass
-    $menuSlug = $mode; // 'category','field','formdata','subadmin'
-    $menu = $db->table('menus')->where('slug', $menuSlug)->get()->getRow();
+        if($roleId != 1){ 
+        $menuSlug = $mode; 
+        $menu = $db->table('menus')->where('slug', $menuSlug)->get()->getRow();
 
-    $permission = $db->table('permissions')
-                     ->where('user_id', $userId)
-                     ->where('menu_id', $menu->id)
-                     ->get()
-                     ->getRow();
-
-    if(!$permission || $permission->can_status != 1){
-        return $this->response->setJSON(['error'=>'Permission denied']);
-    }
-}
+        $permission = $db->table('permissions')->where('user_id', $userId)
+                     ->where('menu_id', $menu->id)->get()->getRow();
+        if(!$permission || $permission->can_status != 1){
+            return $this->response->setJSON(['error'=>'Permission denied']);
+        }
+        }
        
-       switch($mode){
+        switch($mode){
         case 'subadmin':
             switch($action){
                 case"activate":
@@ -104,7 +100,7 @@ class CommonAjaxController extends BaseController
                     break;
             }
             break;
-       }
+        }
         $data['action']=$action;
 		$data['mode']=$mode;
 		$data['rowid'] = $rowId; 
@@ -120,6 +116,7 @@ class CommonAjaxController extends BaseController
         $db = \Config\Database::connect();  
 
         $menuSlug = [
+            'subadmin' => 'subadmin', 
             'category' => 'category',
             'field' => 'field',
             'formdata' => 'formdata',

@@ -52,9 +52,9 @@ class AuthController extends BaseController
         ]);
         } else{
             $admin = new Admin();
-            $adminInfo = $admin->where($fieldType,$this->request->getVar('email'))->first();
+            $adminInfo = $admin->where($fieldType,$this->request->getVar('email'))->where('status', 1)->first();
             if (!$adminInfo) {
-                return redirect()->route('admin.login.form')->with('fail', 'Account not found')->withInput();
+                return redirect()->route('admin.login.form')->with('fail', 'Account not found or Inactive')->withInput();
             }
             $check_password = password_verify($this->request->getVar('password'), $adminInfo['password']);
 

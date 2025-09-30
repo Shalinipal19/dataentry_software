@@ -53,7 +53,7 @@ function getFilteredQuery()
         return $builder;
     }
 
-     function getSidebarMenus()
+    function getSidebarMenus()
     {
         $session = session();
 
@@ -70,6 +70,7 @@ function getFilteredQuery()
             $permModel = new Permission();
             $userMenus = $permModel->getUserMenus($session->get('loggedInAdminId'));
             array_unshift($userMenus, ['name' => 'Dashboard', 'slug' => 'home']);
+            $userMenus[] =  ['name' => 'Report and Search', 'slug' => 'report'];
             return $userMenus;
         }
 

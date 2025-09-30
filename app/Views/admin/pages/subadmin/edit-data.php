@@ -60,6 +60,37 @@
 								<input type="text" class="form-control" id="password" name="password" placeholder="*******">
 							</div>
 						</div>
+						 <div class="row mb-3">
+							<label class="col-sm-3 col-form-label">Assign Permissions</label>
+							<div class="col-sm-9">
+								<table class="table table-bordered">
+									<thead>
+										<tr>
+											<th>Menu</th>
+											<th>Add</th>
+											<th>Edit</th>
+											<th>Delete</th>
+											<th>Change Status</th>
+										</tr>
+									</thead>
+									<tbody>
+										<?php foreach ($menus as $menu): ?>
+											<?php 
+												$perm = $permissions[$menu['slug']] ?? []; 
+												// $permissions array ko controller se bhejna hoga
+											?>
+											<tr>
+												<td><?= $menu['name'] ?></td>
+												<td><input type="checkbox" name="permissions[<?= $menu['slug'] ?>][add]" value="1" <?= !empty($permissions[$menu['slug']]['add']) ? 'checked' : '' ?>></td>
+												<td><input type="checkbox" name="permissions[<?= $menu['slug'] ?>][edit]" value="1" <?= !empty($permissions[$menu['slug']]['edit']) ? 'checked' : '' ?>></td>
+												<td><input type="checkbox" name="permissions[<?= $menu['slug'] ?>][delete]" value="1" <?= !empty($permissions[$menu['slug']]['delete']) ? 'checked' : '' ?>></td>
+												<td><input type="checkbox" name="permissions[<?= $menu['slug'] ?>][status]" value="1" <?= !empty($permissions[$menu['slug']]['status']) ? 'checked' : '' ?>></td>
+											</tr>
+										<?php endforeach; ?>
+									</tbody>
+								</table>
+							</div>
+						</div>
                         <div class="row mb-3 justify-content-center">
                     		<button type="submit" class="btn btn-success px-4" style="width: auto;">Update Category</button>
                         </div>				

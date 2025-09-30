@@ -16,8 +16,10 @@
             <div class="card">
 				<div class="card-header px-4 py-3 d-flex justify-content-between">
 					<h5 class="mb-0">Change Password</h5>
+					 <?php if (session()->get('role') != 2): ?>
 					 <a href="<?= base_url('admin/edit-company-profile') ?>" type="submit" class="btn btn-success">Edit</a>
-				</div>
+					 <?php endif; ?>
+					</div>
 				<div class="card-body p-4">
                   
                     <?php if(isset($validation)): ?>

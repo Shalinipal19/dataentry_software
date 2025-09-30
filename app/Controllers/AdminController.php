@@ -158,7 +158,7 @@ class AdminController extends BaseController
             $menus = [
             ['name'=>'Category', 'slug'=>'category'],
             ['name'=>'Field', 'slug'=>'field'],
-            ['name'=>'Form Data', 'slug'=>'formdata'],
+            ['name'=>'Data Entry List', 'slug'=>'formdata'],
             // ['name'=>'Report and Search', 'slug'=>'report'],
         ];
         return view('admin/pages/subadmin/add-data', compact('menus'));
@@ -167,34 +167,97 @@ class AdminController extends BaseController
     public function editData($id = null)
     {
         $adminModel = new Admin();
+        $permModel  = new Permission();
+
         if ($id === null || !$adminModel->find($id)) {
-            return redirect()->to('admin/subadmin')->with('error', 'Invalid Category ID!');
+            return redirect()->to('admin/subadmin')->with('error', 'Invalid Sub Admin ID!');
         }
+
         if ($this->request->getMethod() === 'POST') {
-            $postData = $this->request->getPost();
-            $rules = [
-                'name'  => 'required',
-                'email' => 'required|valid_email',
-                ];
-            if (!$this->validate($rules)) {
-                return redirect()->back()->withInput()->with('error', 'Please check the form fields.');
-            }
+        $postData = $this->request->getPost();
 
-            $dataArray = [
-                'name' => $postData['name'],
-                'email' => $postData['email'],
-                'role' => 2
+        $rules = [
+            'name'  => 'required',
+            'email' => 'required|valid_email',
+        ];
+
+        if (!$this->validate($rules)) {
+            return redirect()->back()->withInput()->with('error', 'Please check the form fields.');
+        }
+
+        $dataArray = [
+            'name'  => $postData['name'],
+            'email' => $postData['email'],
+            'role'  => 2
+        ];
+
+        if (!empty($postData['password'])) {
+            $dataArray['password'] = password_hash($postData['password'], PASSWORD_DEFAULT);
+        }
+
+        $adminModel->update($id, $dataArray);
+
+        $permissions = $postData['permissions'] ?? [];
+
+        $menuIds = [
+            'category' => 1,
+            'field'    => 2,
+            'formdata' => 3,
+            // 'report' => 4,
+        ];
+
+        foreach ($menuIds as $slug => $menuId) {
+            $actions = $permissions[$slug] ?? [];
+
+            $data = [
+                'user_id'    => $id,
+                'menu_id'    => $menuId,
+                'can_add'    => isset($actions['add']) ? 1 : 0,
+                'can_edit'   => isset($actions['edit']) ? 1 : 0,
+                'can_delete' => isset($actions['delete']) ? 1 : 0,
+                'can_status' => isset($actions['status']) ? 1 : 0,
             ];
-            if (!empty($postData['password'])) {
-                $dataArray['password'] = password_hash($postData['password'], PASSWORD_DEFAULT);
-            }
 
-            $adminModel->update($id, $dataArray);
-                return redirect()->to('admin/subadmin')->with('success', 'Sub Admin updated successfully!');
+            $existing = $permModel->where('user_id', $id)->where('menu_id', $menuId) ->first();
+
+            if ($existing) {
+                $permModel->update($existing['id'], $data);
+            } else {
+                if ($data['can_add'] || $data['can_edit'] || $data['can_delete'] || $data['can_status']) {
+                    $permModel->insert($data);
+                }
             }
+        }
+        return redirect()->to('admin/subadmin')->with('success', 'Sub Admin updated successfully!');
+        }
             $getData = $adminModel->find($id);
-        return view('admin/pages/subadmin/edit-data', compact('getData'));
+
+        $menus = [
+            ['name'=>'Category', 'slug'=>'category'],
+            ['name'=>'Field', 'slug'=>'field'],
+            ['name'=>'Data Entry List', 'slug'=>'formdata'],
+        ];
+
+        $userPermissions = $permModel->where('user_id', $id)->findAll();
+        $permissions = [];
+        foreach ($userPermissions as $perm) {
+            $slug = array_search($perm['menu_id'], [
+                'category' => 1,
+                'field'    => 2,
+                'formdata' => 3,
+            ]);
+            if ($slug) {
+                $permissions[$slug] = [
+                    'add'    => $perm['can_add'],
+                    'edit'   => $perm['can_edit'],
+                    'delete' => $perm['can_delete'],
+                    'status' => $perm['can_status'],
+                ];
+            }
+        }
+        return view('admin/pages/subadmin/edit-data', compact('getData', 'menus', 'permissions'));
     }
+
 
     public function logoutHandler()
     {
